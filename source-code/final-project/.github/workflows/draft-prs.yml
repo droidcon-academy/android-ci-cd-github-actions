@@ -1,0 +1,16 @@
+name: Convert PRs to Draft
+on:
+  pull_request:
+    types:
+      - opened
+env:
+  GH_TOKEN: "${{ secrets.GH_TOKEN }}"
+jobs:
+  mark-prs-as-draft:
+    name: Convert PR to Draft
+    runs-on: ubuntu-latest
+    steps:
+      - name: Convert PR to Draft
+        uses: voiceflow/draft-pr@latest
+        with:
+          token: ${{ env.GH_TOKEN }}

@@ -1,0 +1,35 @@
+name: Build & Deploy to Firebase App Distribution
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  build_and_deploy_firebase:
+    runs-on: [ubuntu-latest]
+    environment: paid
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build paid release variant
+        run: ./gradlew assemblePaidRelease
+        env:
+          ANDROID_KEY_STORE_PASSWORD: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: upload artifact to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1.7.0
+        with:
+          appId: ${{secrets.FIREBASE_ANDROID_APP_ID}}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          groups: all-testers
+          file: app/build/outputs/apk/paid/release/app-paid-release.apk
